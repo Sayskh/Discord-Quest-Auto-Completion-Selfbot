@@ -90,7 +90,8 @@ export class ClientQuest extends Client {
 			this.setupWebhook(),
 		]).then(() => this.websocketManager.connect()).catch((e) => {
 			console.error('Error during client connection:', e.message);
-			return this.sendWebhookMessage('Error during client connection: ' + e.message);
+			this.sendWebhookMessage('Error during client connection: ' + e.message);
+			throw e;
 		});
 	}
 	destroy() {

@@ -338,10 +338,12 @@ export class QuestManager implements Iterable<Quest> {
 				break;
 			}
 			case 'STREAM_ON_DESKTOP': {
-				console.log(
-					'This no longer works in node for non-video quests. Use the discord desktop app to complete the',
+				await this.doingStreamOnDesktopQuest(
+					quest,
 					questName,
-					'quest!',
+					secondsNeeded,
+					taskName,
+					applicationName,
 				);
 				break;
 			}
@@ -487,6 +489,54 @@ export class QuestManager implements Iterable<Quest> {
 			`/quests/${quest.id}/heartbeat`,
 			{
 				body: { stream_key: streamKey, terminal: true },
+			},
+		);
+		quest.updateUserStatus(res as any);
+		console.log(`Quest "${questName}" completed!`);
+		this.client.emitQuestCompleted(quest.id);
+	}
+	async doingStreamOnDesktopQuest(
+		quest: Quest,
+		questName: string,
+		secondsNeeded: number,
+		taskName: string,
+		applicationName: string,
+	) {
+		const interval = 20;
+		const pid = Math.floor(Math.random() * 30000) + 1000;
+		const streamKey = `call:0:${pid}`;
+		while (!quest.isCompleted()) {
+			const secondsDone =
+				(quest.userStatus?.progress?.[taskName]?.value as number) || 0;
+			if (secondsDone >= secondsNeeded) {
+				break;
+			}
+			const res = await this.client.rest.post(
+				`/quests/${quest.id}/heartbeat`,
+				{
+					body: {
+						stream_key: streamKey,
+						terminal: false,
+					},
+				},
+			);
+			quest.updateUserStatus(res as any);
+			console.log(
+				`Spoofed your stream to ${applicationName}. Wait for ${Math.ceil(
+					(secondsNeeded - secondsDone) / 60,
+				)} more minute(s).`,
+			);
+			await new Promise((resolve) =>
+				setTimeout(resolve, interval * 1000),
+			);
+		}
+		const res = await this.client.rest.post(
+			`/quests/${quest.id}/heartbeat`,
+			{
+				body: {
+					stream_key: streamKey,
+					terminal: true,
+				},
 			},
 		);
 		quest.updateUserStatus(res as any);
