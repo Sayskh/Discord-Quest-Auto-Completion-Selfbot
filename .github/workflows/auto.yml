@@ -36,7 +36,3 @@ jobs:
                   WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
               run: |
                   npm run github
-
-            - name: Keepalive workflow
-              if: always()
-              uses: gautamkrishnar/keepalive-workflow@v2
