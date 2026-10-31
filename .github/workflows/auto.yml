@@ -3,7 +3,10 @@ name: Run quest auto completion bot
 on:
     workflow_dispatch: {}
     schedule:
-        - cron: '15 0 * * *'
+        - cron: '27 1 * * *'
+
+permissions:
+    contents: write
 
 jobs:
     run-bot:
@@ -33,3 +36,7 @@ jobs:
                   WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
               run: |
                   npm run github
+
+            - name: Keepalive workflow
+              if: always()
+              uses: gautamkrishnar/keepalive-workflow@v2
